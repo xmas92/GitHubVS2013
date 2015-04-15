@@ -17,6 +17,7 @@ class Swarm
 	bool m_drawAngle = false;
 	bool m_drawShadow = false;
 	bool m_drawUnits = true;
+	bool m_drawIds = false;
 	sf::Font m_font;
 public:
 	Swarm(Image, int);
@@ -35,6 +36,9 @@ public:
 	};
 	void UnitsToggle() {
 		m_drawUnits = !m_drawUnits;
+	};
+	void IdsToggle() {
+		m_drawIds = !m_drawIds;
 	};
 
 	float Scale() { return m_scale; }

@@ -204,6 +204,13 @@ void Swarm::Draw(sf::RenderWindow & window)
 	gradientTxt.setOrigin(m_scale * squareSize * .30f, m_scale * squareSize *.70f);
 	gradientTxt.setColor(sf::Color::Cyan);
 
+
+	sf::Text idTxt;
+	idTxt.setFont(m_font);
+	idTxt.setCharacterSize(m_scale * squareSize / 2.f);
+	idTxt.setOrigin(m_scale * squareSize * .3f, m_scale * squareSize *.40f);
+	idTxt.setColor(sf::Color::Cyan);
+
 	for (Unit u : m_units) {
 
 		if (m_drawGradient) {
@@ -221,6 +228,11 @@ void Swarm::Draw(sf::RenderWindow & window)
 			else
 				unit.setOutlineColor(sf::Color::Green);
 			window.draw(unit);
+			if (m_drawIds) {
+				idTxt.setString(std::to_string(u.Id()));
+				idTxt.setPosition(xMargin + u.RealCoord().second * squareSize, yMargin + u.RealCoord().first* squareSize);
+				window.draw(idTxt);
+			}
 		}
 
 		if (m_drawShadow){
@@ -235,6 +247,11 @@ void Swarm::Draw(sf::RenderWindow & window)
 			c.a /= 2;
 			unit.setOutlineColor(c);
 			window.draw(unit);
+			if (m_drawIds) {
+				idTxt.setString(std::to_string(u.Id()));
+				idTxt.setPosition(xMargin + u.Coord().second * squareSize, yMargin + u.Coord().first* squareSize);
+				window.draw(idTxt);
+			}
 		}
 
 		if (m_drawAngle) {

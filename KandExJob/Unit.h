@@ -47,6 +47,8 @@ public:
 	bool IsSeed() { return m_seed; }
 	bool IsDone() { return m_state == s_Done; }
 	bool IsLocalized() { return m_localized; }
+
+	int Id() { return m_id; }
 	
 	void Step(Swarm * swarm);
 

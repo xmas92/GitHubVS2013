@@ -18,14 +18,8 @@ int main(void) {
 	std::srand(std::time(0));
 	std::cout << "Hello, World!\n";
 
-	std::cout << Angle(FCoord(2, 1), FCoord(2, 2)) << std::endl;
-	std::cout << std::fmodf(Angle(FCoord(2, 1), FCoord(2, 2)), 3.14159265358979323846f) << std::endl;
-
-	std::cout << Angle(FCoord(2, 1), FCoord(1.5, 1.5)) << std::endl;
-	std::cout << std::fmodf(Angle(FCoord(2, 1), FCoord(1.5, 1.5)), 3.14159265358979323846f) << std::endl;
-
-	std::cout << Angle(FCoord(2, 2), FCoord(1.5, 1.5)) << std::endl;
-	std::cout << std::fmodf(Angle(FCoord(2, 2), FCoord(1.5, 1.5)), 3.14159265358979323846f) << std::endl;
+	std::cout << Angle(FCoord(1, 1), FCoord(2, 3)) << std::endl;
+	std::cout << Angle(FCoord(2, 3), FCoord(1, 1)) << std::endl;
 
 	sf::RenderWindow window(sf::VideoMode(640, 640), "######");
 
@@ -65,6 +59,9 @@ int main(void) {
 					break;
 				case sf::Keyboard::Y:
 					swarm.ShadowToggle();
+					break;
+				case sf::Keyboard::I:
+					swarm.IdsToggle();
 					break;
 				case sf::Keyboard::R:
 					pause = true;

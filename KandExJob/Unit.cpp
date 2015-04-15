@@ -22,7 +22,6 @@ void Unit::Seed()
 
 void Unit::SetPos(FCoord pos)
 {
-	m_coord = pos;
 	m_realCoord = pos;
 }
 
@@ -85,9 +84,20 @@ void Unit::Step(Swarm * swarm)
 			for (int i = 0; i < proxPkgs.size(); i++) {
 				for (int j = 0; j < i; j++) {
 					FCoord P1, P2;
+					float a1, a2; // Angles to known line
+					float b1, b2; // Internal Angles
+					P1 = proxPkgs[i].first;
+					P2 = proxPkgs[j].first;
+					a1 = Angle(P1, P2);
+					a2 = Angle(P2, P1);
+					b1 = (a1 < proxPkgs[i].second.first) ? proxPkgs[i].second.first - a1 : a1 - proxPkgs[i].second.first;
+					b2 = (a2 < proxPkgs[j].second.first) ? proxPkgs[j].second.first - a2 : a2 - proxPkgs[j].second.first;
 					float l_12 = std::sqrtf((P1.first - P2.first) * (P1.first - P2.first)
 						+ (P1.second - P2.second) * (P1.second - P2.second));
-
+					float l_13 = l_12 / std::sinf(M_PI - b1 - b2) * std::sinf(b2);
+					float l_23 = l_12 / std::sinf(M_PI - b1 - b2) * std::sinf(b1);
+					X.push_back(P1.second + std::cosf(proxPkgs[i].second.first) * l_23);
+					Y.push_back(P1.first + std::sinf(proxPkgs[i].second.first) * l_23);
 				}
 			}
 			// Average point
