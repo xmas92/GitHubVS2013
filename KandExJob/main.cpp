@@ -18,9 +18,6 @@ int main(void) {
 	std::srand(std::time(0));
 	std::cout << "Hello, World!\n";
 
-	std::cout << Angle(FCoord(1, 1), FCoord(2, 3)) << std::endl;
-	std::cout << Angle(FCoord(2, 3), FCoord(1, 1)) << std::endl;
-
 	sf::RenderWindow window(sf::VideoMode(640, 640), "######");
 
 	Swarm swarm = Swarm(img, 25);

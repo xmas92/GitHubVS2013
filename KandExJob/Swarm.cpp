@@ -58,8 +58,6 @@ void Swarm::SetupSeeds()
 {
 	assert(m_numUnits > NUMSEEDS);
 	int numPlacedSeeds = 0;
-	for (int i = 0; i < NUMSEEDS; i++)
-		m_units[i].Seed();
 
 	// Find random black square
 	float x, y;
@@ -103,6 +101,8 @@ void Swarm::SetupSeeds()
 			}
 		}
 	}
+	for (int i = 0; i < NUMSEEDS; i++)
+		m_units[i].Seed();
 }
 
 void Swarm::SetupUnits()

@@ -18,6 +18,7 @@ void Unit::Seed()
 	m_seed = true;
 	m_state = s_Seed;
 	m_localized = true;
+	m_coord = m_realCoord;
 }
 
 void Unit::SetPos(FCoord pos)
