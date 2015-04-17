@@ -15,6 +15,8 @@ class Unit
 	};
 	FCoord m_coord;
 	FCoord m_realCoord;
+	FCoord m_startCoord;
+	int m_startStep;
 	int m_id;
 	Swarm * m_Swarm;
 	bool m_seed = false;

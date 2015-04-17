@@ -19,6 +19,7 @@ class Swarm
 	bool m_drawUnits = true;
 	bool m_drawIds = false;
 	sf::Font m_font;
+	int m_lastDoneStep;
 public:
 	Swarm(Image, int);
 	~Swarm();
@@ -49,6 +50,9 @@ public:
 	bool IsInside(FCoord);
 
 	bool MoveLock(int);
+
+	void UnitDone(int step) { m_lastDoneStep = step; }
+	int StepDone() { return m_lastDoneStep; }
 
 	float Signal(int, int);
 

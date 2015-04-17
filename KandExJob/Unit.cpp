@@ -6,6 +6,7 @@
 
 
 #define MINSTEPPERCENTAGE 1
+#define CLUSTERLENGHT 50
 
 # define M_PI           3.14159265358979323846f  /* pi */
 
@@ -90,10 +91,24 @@ void Unit::Step(Swarm * swarm)
 	int highGradient = 0;
 	std::pair<bool, int> res;
 	std::vector<float> X, Y;
+	if (m_step_c - m_Swarm->StepDone() > 200) {
+		switch (m_state) {
+			case s_Done:
+			case s_Localize:
+			case s_ShapeLocalize:
+			case s_Shape:
+				m_state = s_Cluster;
+			case s_Seed:
+				m_step_c = 0;
+			case s_Cluster:
+			default:
+				break;
+		}
+	}
 	switch (m_state)
 	{
 	case s_Cluster:
-		if (m_step_c == 100)
+		if (m_step_c == CLUSTERLENGHT)
 			m_state = s_Localize;
 		m_Swarm->GradientUpdate(m_id, Gradient());
 		if (RetriveGradientPkg()) {
@@ -110,8 +125,13 @@ void Unit::Step(Swarm * swarm)
 		// CHEAT FOR TESTING
 		m_coord = m_realCoord;
 		m_localized = true;
+		m_startCoord = m_coord;
+		m_startStep = m_step_c;
 		if (m_Swarm->IsInside(m_coord)) // Should only happen once
+		{
 			m_state = s_Done;
+			m_Swarm->UnitDone(m_step_c);
+		}
 		else
 			m_state = s_Shape;
 		break;
@@ -171,6 +191,11 @@ void Unit::Step(Swarm * swarm)
 		break;
 	case s_Shape:
 		// CHEAT FOR TESTING
+		if (m_step_c - m_startStep > 20 && Distance(m_realCoord, m_startCoord) < m_Swarm->Scale()) {
+			m_moving = false;
+			m_state = s_Localize;
+			break;
+		}
 		if (m_Swarm->MoveLock(m_id))
 			break;
 		// CHEAT END
@@ -210,6 +235,7 @@ void Unit::Step(Swarm * swarm)
 				res = TryMoveStopOnExit2(Angle(m_realCoord, proxPkgs[i].first), 100);
 				if (res.first || (res.second == 0 && before) || (before && m_Swarm->IsInside(m_realCoord))) {
 					m_state = s_Done;
+					m_Swarm->UnitDone(m_step_c);
 					break;
 				}
 				moves -= res.second;
@@ -234,7 +260,7 @@ void Unit::Step(Swarm * swarm)
 	case s_Seed:
 		m_Swarm->GradientUpdate(m_id, Gradient());
 		if (m_id == 0) {
-			if (m_step_c == 100) {
+			if (m_step_c == CLUSTERLENGHT) {
 				GradientReset(ResetPkg(0, 0), m_Swarm);
 				//m_Swarm->GradientReset(0, ResetPkg(0, 0), true);
 			}
@@ -245,7 +271,6 @@ void Unit::Step(Swarm * swarm)
 	default:
 		break;
 	}
-
 	// Step Counter
 	m_step_c++;
 }
