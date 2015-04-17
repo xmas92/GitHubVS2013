@@ -8,6 +8,7 @@ class Unit
 	enum State {
 		s_Cluster,
 		s_Localize,
+		s_ShapeLocalize,
 		s_Shape,
 		s_Done,
 		s_Seed,
@@ -27,6 +28,7 @@ class Unit
 	float m_gradientPkgSignal = 0;
 	bool m_gradientPkgFlag = false;
 	bool m_localized = false;
+	bool m_moving = false;
 
 public:
 	Unit(int id, Swarm * swarm) : m_id(id), m_Swarm(swarm) {};
@@ -35,6 +37,8 @@ public:
 	void SetPos(FCoord);
 	void Seed();
 	void TryMove(float, int);
+	bool TryMoveStopOnExit(float, int);
+	std::pair<bool,int> TryMoveStopOnExit2(float, int);
 
 	void GradientReset(ResetPkg, Swarm *);
 
@@ -47,6 +51,7 @@ public:
 	bool IsSeed() { return m_seed; }
 	bool IsDone() { return m_state == s_Done; }
 	bool IsLocalized() { return m_localized; }
+	bool IsMoving();
 
 	int Id() { return m_id; }
 	

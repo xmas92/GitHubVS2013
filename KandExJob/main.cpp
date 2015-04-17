@@ -20,7 +20,7 @@ int main(void) {
 
 	sf::RenderWindow window(sf::VideoMode(640, 640), "######");
 
-	Swarm swarm = Swarm(img, 25);
+	Swarm swarm = Swarm(img, 50);
 	bool pause = true;
 	int numStep = 0;
 	window.setTitle("Paused - " + std::to_string(numStep));

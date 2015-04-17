@@ -39,6 +39,44 @@ void Unit::TryMove(float angle, int precent)
 		m_realCoord = newPos;
 	}
 }
+std::pair<bool, int> Unit::TryMoveStopOnExit2(float angle, int precent)
+{
+	FCoord newPos = m_realCoord;
+	float xDelta = MINSTEPPERCENTAGE / 100.f * m_Swarm->Scale() * cosf(angle);
+	float yDelta = MINSTEPPERCENTAGE / 100.f * m_Swarm->Scale() * sinf(angle);
+	for (int step = 0; step < precent; step += MINSTEPPERCENTAGE)
+	{
+		bool isInside = m_Swarm->IsInside(newPos);
+		newPos = Add(newPos, yDelta, xDelta);
+		bool willBeInside = m_Swarm->IsInside(newPos);
+		if (m_Swarm->TryCollision(m_id, newPos))
+			return std::make_pair(false, step);
+		if (isInside && !willBeInside) {
+			return std::make_pair(true, step + MINSTEPPERCENTAGE);
+		}
+		m_realCoord = newPos;
+	}
+	return std::make_pair(false, precent);
+}
+bool Unit::TryMoveStopOnExit(float angle, int precent)
+{
+	FCoord newPos = m_realCoord;
+	float xDelta = MINSTEPPERCENTAGE / 100.f * m_Swarm->Scale() * cosf(angle);
+	float yDelta = MINSTEPPERCENTAGE / 100.f * m_Swarm->Scale() * sinf(angle);
+	for (int step = 0; step < precent; step += MINSTEPPERCENTAGE)
+	{
+		bool isInside = m_Swarm->IsInside(newPos);
+		newPos = Add(newPos, yDelta, xDelta);
+		bool willBeInside = m_Swarm->IsInside(newPos);
+		if (m_Swarm->TryCollision(m_id, newPos))
+			return false;
+		if (isInside && !willBeInside) {
+			return true;
+		}
+		m_realCoord = newPos;
+	}
+	return false;
+}
 
 void Unit::Step(Swarm * swarm)
 {
@@ -47,6 +85,10 @@ void Unit::Step(Swarm * swarm)
 	// Reduce Signal
 	m_gradientPkgSignal -= 0.1f;
 	std::vector<ProximityPkg> proxPkgs;
+	ProximityPkg pkg;
+	float xAverage = 0, yAverage = 0;
+	int highGradient = 0;
+	std::pair<bool, int> res;
 	std::vector<float> X, Y;
 	switch (m_state)
 	{
@@ -58,7 +100,22 @@ void Unit::Step(Swarm * swarm)
 			TryMove(m_gradientPkg.first, 100);
 		}
 		break;
+	case s_ShapeLocalize:
+		// CHEAT FOR TESTING
+		m_coord = m_realCoord;
+		m_state = s_Shape;
+		break;
+		// CHEAT END
 	case s_Localize:
+		// CHEAT FOR TESTING
+		m_coord = m_realCoord;
+		m_localized = true;
+		if (m_Swarm->IsInside(m_coord)) // Should only happen once
+			m_state = s_Done;
+		else
+			m_state = s_Shape;
+		break;
+		// CHEAT END
 		proxPkgs = m_Swarm->GetProximityUnits(m_id);
 		m_localize_try++;
 		switch (proxPkgs.size()){
@@ -106,13 +163,73 @@ void Unit::Step(Swarm * swarm)
 			break;
 		}
 		if (m_localized) {
-			if (m_Swarm->IsInside(m_coord))
+			if (m_Swarm->IsInside(m_coord)) // Should only happen once
 				m_state = s_Done;
 			else
 				m_state = s_Shape;
 		}
 		break;
 	case s_Shape:
+		// CHEAT FOR TESTING
+		if (m_Swarm->MoveLock(m_id))
+			break;
+		// CHEAT END
+		proxPkgs = m_Swarm->GetProximityUnits(m_id);
+		for (auto p : proxPkgs) {
+			yAverage += p.first.first;
+			xAverage += p.first.second;
+			if (p.second.second > highGradient) 
+				highGradient = p.second.second;
+		}
+		yAverage /= proxPkgs.size();
+		xAverage /= proxPkgs.size();
+		if (highGradient <= Gradient())
+			m_moving = true;
+		if (!m_moving)
+			break; 
+		/*res = TryMoveStopOnExit2(Angle(m_realCoord, proxPkgs[0].first), 95);
+		if (res.first){
+			m_state = s_Done;
+			break;
+		}*/
+		for (int i = 0, moves = 100 - res.second; moves > 0 && i < proxPkgs.size();) {
+			TryMove(Angle(proxPkgs[i].first, m_realCoord), 5);
+			float angle = Angle(m_realCoord, proxPkgs[i].first) - M_PI / 2.f;
+			if (angle < 0) angle += M_PI * 2;
+			float a = 0.1f;
+			do {
+				res = TryMoveStopOnExit2((angle + a < 0) ? angle + a + M_PI * 2 : angle + a, 5);
+				a -= .01f;
+			} while (res.second == 0 && a > -0.1f);
+			if (res.second == 0)
+				i++;
+			else
+			{
+				bool before = res.first;
+				moves -= res.second;
+				res = TryMoveStopOnExit2(Angle(m_realCoord, proxPkgs[i].first), 100);
+				if (res.first || (res.second == 0 && before) || (before && m_Swarm->IsInside(m_realCoord))) {
+					m_state = s_Done;
+					break;
+				}
+				moves -= res.second;
+				proxPkgs = m_Swarm->GetProximityUnits(m_id);
+				i = 0;
+			}
+		}
+
+		/*
+		if (TryMoveStopOnExit(0.0, 100)) {
+			m_state = s_Done;
+			break;
+		}
+		if (TryMoveStopOnExit(0.0, 100)) {
+			m_state = s_Done;
+			break;
+		}
+		*/
+		if (m_state != s_Done)
+			m_state = s_ShapeLocalize;
 		break;
 	case s_Seed:
 		m_Swarm->GradientUpdate(m_id, Gradient());
@@ -133,14 +250,34 @@ void Unit::Step(Swarm * swarm)
 	m_step_c++;
 }
 
+bool Unit::IsMoving()
+{
+	switch (m_state)
+	{
+	case s_Cluster:
+		return true;
+	case s_Seed:
+	case s_Done:
+	case s_Localize:
+		return false;
+	case s_ShapeLocalize:
+	case s_Shape:
+		return m_moving;
+	default:
+		return false;
+	}
+}
+
 int Unit::Gradient() 
 {
 	switch (m_state)
 	{
 	case s_Cluster:
 		return m_gradientPkg.second + 1;
-	case s_Seed:
 	case s_Done:
+		return 0;
+	case s_Seed:
+	case s_ShapeLocalize:
 	case s_Localize:
 	case s_Shape:
 		return m_resetPkg.first;

@@ -38,7 +38,16 @@ void Swarm::CalculateScale()
 		for (auto pixel : row)
 			if (pixel) 
 				area++;
-	m_scale = 2.f * std::sqrtf(area / (m_numUnits * M_PI));
+	m_scale = 2.f * std::sqrtf(area / (m_numUnits * 4));
+}
+
+bool Swarm::MoveLock(int id) {
+	for (int i = 0; i < m_units.size(); i++) {
+		if (i == id) continue;
+		if (m_units[i].IsMoving())
+			return true;
+	}
+	return false;
 }
 
 void Swarm::CreateUnits()
@@ -141,7 +150,8 @@ bool Swarm::TryCollision(int id, FCoord newCoord)
 	for (int i = 0; i < m_units.size(); i++) {
 		if (id == i) continue;
 		if (Distance(m_units[i].RealCoord(), newCoord) < m_scale)
-			return true;
+			if (Distance(m_units[i].RealCoord(), newCoord) < Distance(m_units[i].RealCoord(), m_units[id].RealCoord()))
+				return true;
 	}
 	return false;
 }
@@ -225,8 +235,10 @@ void Swarm::Draw(sf::RenderWindow & window)
 				unit.setOutlineColor(sf::Color::Red);
 			else if (u.IsDone())
 				unit.setOutlineColor(sf::Color::Yellow);
-			else
+			else if (u.IsMoving())
 				unit.setOutlineColor(sf::Color::Green);
+			else
+				unit.setOutlineColor(sf::Color::Blue);
 			window.draw(unit);
 			if (m_drawIds) {
 				idTxt.setString(std::to_string(u.Id()));
@@ -241,8 +253,10 @@ void Swarm::Draw(sf::RenderWindow & window)
 				unit.setOutlineColor(sf::Color::Red);
 			else if (u.IsDone())
 				unit.setOutlineColor(sf::Color::Yellow);
-			else
+			else if (u.IsMoving())
 				unit.setOutlineColor(sf::Color::Green);
+			else
+				unit.setOutlineColor(sf::Color::Blue);
 			auto c = unit.getOutlineColor();
 			c.a /= 2;
 			unit.setOutlineColor(c);
@@ -291,7 +305,7 @@ std::vector<ProximityPkg> Swarm::GetProximityUnits(int id) {
 	std::vector<ProximityPkg> ret;
 	for (int i = 0; i < m_numUnits; i++) {
 		if (i == id) continue;
-		if (m_units[i].IsLocalized() && Distance(m_units[i].RealCoord(), m_units[id].RealCoord()) < m_scale * 1.5f) {
+		if (m_units[i].IsLocalized() && Distance(m_units[i].RealCoord(), m_units[id].RealCoord()) < m_scale * 1.1f) {
 				ret.push_back(ProximityPkg(m_units[i].Coord(), GradientPkg(Angle(m_units[i].RealCoord(), m_units[id].RealCoord()), m_units[i].Gradient())));
 		}
 	}

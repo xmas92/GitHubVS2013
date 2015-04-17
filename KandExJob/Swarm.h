@@ -48,6 +48,8 @@ public:
 
 	bool IsInside(FCoord);
 
+	bool MoveLock(int);
+
 	float Signal(int, int);
 
 
