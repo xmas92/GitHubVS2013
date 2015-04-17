@@ -38,7 +38,7 @@ void Swarm::CalculateScale()
 		for (auto pixel : row)
 			if (pixel) 
 				area++;
-	m_scale = 2.f * std::sqrtf(area / (m_numUnits * M_PI));
+	m_scale = 2.f * std::sqrtf(area / (m_numUnits * M_PI)) * 0.9;
 }
 
 bool Swarm::MoveLock(int id) {
