@@ -6,9 +6,10 @@
 
 
 #define MINSTEPPERCENTAGE 1
-#define CLUSTERLENGHT 50
 
 # define M_PI           3.14159265358979323846f  /* pi */
+
+int CLUSTERLENGHT = 50;
 
 Unit::~Unit()
 {
@@ -101,6 +102,7 @@ void Unit::Step(Swarm * swarm)
 			case s_Seed:
 				m_step_c = 0;
 			case s_Cluster:
+				CLUSTERLENGHT = 25;
 			default:
 				break;
 		}
@@ -191,7 +193,7 @@ void Unit::Step(Swarm * swarm)
 		break;
 	case s_Shape:
 		// CHEAT FOR TESTING
-		if (m_step_c - m_startStep > 20 && Distance(m_realCoord, m_startCoord) < m_Swarm->Scale()) {
+		if (m_step_c - m_startStep > 10 && Distance(m_realCoord, m_startCoord) < m_Swarm->Scale()) {
 			m_moving = false;
 			m_state = s_Localize;
 			break;
